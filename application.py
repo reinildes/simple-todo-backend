@@ -13,38 +13,42 @@ class Task:
         self.id = id
         self.checked = checked
 
-taskList = list()
+usersData = dict()
 
-@app.route("/")
-def index():
-    return "Hello world, baby"
+@app.route("/users", methods=['POST'])
+def newUser():
+    data = json.loads(request.data)
+    
+    if usersData.get(data['user']) == None:
+        usersData[data['user']] = list()
+    return Response(status=201)  
 
 @cross_origin
-@app.route("/tasks")
-def tasks():
-    taskListDic = list(map(lambda task: task.__dict__, taskList))
+@app.route("/tasks/<user>")
+def tasks(user):
+    taskListDic = list(map(lambda task: task.__dict__, usersData.get(user)))
     return Response(
         json.dumps(taskListDic),
         status=200,
         mimetype='application/json')
 
 @cross_origin
-@app.route("/tasks", methods=['POST'])
-def addTask():        
+@app.route("/tasks/<user>", methods=['POST'])
+def addTask(user):        
     data = json.loads(request.data)
-    taskList.append(Task(data['desc'], data['id'], data['checked']))
-    return Response(status=200)
+    usersData.get(user).append(Task(data['desc'], data['id'], data['checked']))
+    return Response(status=201)
 
 @cross_origin
-@app.route("/tasks/<int:id>", methods=['PUT'])
-def updateTask(id):        
-    task = list(filter(lambda task: task.id == id, taskList))[0]
+@app.route("/tasks/<user>/<int:id>", methods=['PUT'])
+def updateTask(user, id):        
+    task = list(filter(lambda task: task.id == id, usersData.get(user)))[0]
     task.checked = not task.checked
     return Response(status=200)    
 
 @cross_origin
-@app.route("/tasks/<int:id>", methods=['DELETE'])
-def deleteTask(id):        
-    global taskList
-    taskList = list(filter(lambda task: task.id != id, taskList))
+@app.route("/tasks/<user>/<int:id>", methods=['DELETE'])
+def deleteTask(user, id):        
+    global usersData
+    usersData[user] = list(filter(lambda task: task.id != id, usersData.get(user)))
     return Response(status=200)    
