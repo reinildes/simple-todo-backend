@@ -13,10 +13,7 @@ class Task:
         self.id = id
         self.checked = checked
 
-task = Task("Take a walk with the dog", 123, False)
-task2 = Task("Take a walk with the cat", 124, True)
-
-taskList = [task, task2]
+taskList = list()
 
 @app.route("/")
 def index():
@@ -31,21 +28,18 @@ def tasks():
         status=200,
         mimetype='application/json')
 
-
 @cross_origin
 @app.route("/tasks", methods=['POST'])
 def addTask():        
-
     data = json.loads(request.data)
     taskList.append(Task(data['desc'], data['id'], data['checked']))
-
     return Response(status=200)
 
 @cross_origin
 @app.route("/tasks/<int:id>", methods=['PUT'])
 def updateTask(id):        
     task = list(filter(lambda task: task.id == id, taskList))[0]
-    task[0].checked = not task[0].checked
+    task.checked = not task.checked
     return Response(status=200)    
 
 @cross_origin
